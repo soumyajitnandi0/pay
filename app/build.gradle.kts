@@ -47,9 +47,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("com.google.android.material:material:1.5.0")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+//    implementation("com.google.android.material:material:1.5.0")
+//    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+//    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+//    implementation("org.springframework.boot:spring-boot-starter-web")
+//    implementation("com.google.code.gson:gson:2.10.1") // Latest Gson version
+//    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Retrofit Gson converter
 
 }

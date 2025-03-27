@@ -1,108 +1,88 @@
 package com.example.pay
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.razorpay.Checkout
+import org.json.JSONObject
+import android.widget.Toast
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultWithDataListener
-import org.json.JSONObject
-import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
-import retrofit2.http.POST
-import retrofit2.http.Query
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
-class MainActivity : AppCompatActivity(), PaymentResultWithDataListener {
+class MainActivity : AppCompatActivity() , PaymentResultWithDataListener {
 
-    private lateinit var amountEditText: EditText
-    private lateinit var payButton: Button
 
-    // Retrofit interface for backend communication
-    interface PaymentService {
-        @POST("/payments/create-order")
-        fun createOrder(@Query("amount") amount: Double): Call<String>
-    }
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        amountEditText = findViewById(R.id.amountEditText)
-        payButton = findViewById(R.id.payBtn)
 
-        // Initialize Razorpay
         Checkout.preload(applicationContext)
+        val co = Checkout()
 
+        co.setKeyID("rzp_test_NhfzLjYqDQdROT")
+
+        val payButton = findViewById<Button>(R.id.payBtn)
         payButton.setOnClickListener {
-            val amount = amountEditText.text.toString().toDoubleOrNull()
-            if (amount != null && amount > 0) {
-                createRazorpayOrder(amount)
-            } else {
-                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-            }
+
+
+            initPayment()
         }
+
     }
 
-    private fun createRazorpayOrder(amount: Double) {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://your-backend-url.com")
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .build()
+    private fun initPayment() {
 
-        val service = retrofit.create(PaymentService::class.java)
-
-        service.createOrder(amount).enqueue(object : Callback<String> {
-            override fun onResponse(call: Call<String>, response: Response<String>) {
-                if (response.isSuccessful) {
-                    val orderId = response.body()
-                    initiateRazorpayPayment(orderId!!, amount)
-                } else {
-                    Toast.makeText(this@MainActivity, "Order creation failed", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<String>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "Network error", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun initiateRazorpayPayment(orderId: String, amount: Double) {
-        val checkout = Checkout()
-        checkout.setKeyID("YOUR_RAZORPAY_KEY_ID")
+        val activity: Activity = this
+        val co = Checkout()
 
         try {
-            val options = JSONObject().apply {
-                put("name", "Your Business Name")
-                put("description", "Payment for Services")
-                put("order_id", orderId)
-                put("amount", (amount * 100).toInt().toString())
-                put("currency", "INR")
+            val options = JSONObject()
+            options.put("name","SOUMYAJIT NANDI")
+            options.put("description","Reference No. #123456")
+            //You can omit the image option to fetch the image from the Dashboard
+            options.put("image","http://example.com/image/rzp.jpg")
+            options.put("theme.color", "#FF1515");
+            options.put("currency","INR");
+//            options.put("order_id", "order_DBJOWzybf0sJbb");
+            options.put("amount","50000")//pass amount in currency subunits
 
-                val prefill = JSONObject().apply {
-                    put("email", "customer@example.com")
-                    put("contact", "9876543210")
-                }
-                put("prefill", prefill)
-            }
+            val retryObj = JSONObject();
+            retryObj.put("enabled", false);
+//            retryObj.put("max_count", 4);
+            options.put("retry", retryObj);
 
-            checkout.open(this, options)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error in payment: ${e.message}", Toast.LENGTH_LONG).show()
+            val prefill = JSONObject()
+            prefill.put("email","soumyajitnandi7384@gmail.com")
+            prefill.put("contact","9876543210")
+
+            options.put("prefill",prefill)
+            co.open(activity,options)
+        }catch (e: Exception){
+            Toast.makeText(activity,"Error in payment: "+ e.message,Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         }
     }
 
-    override fun onPaymentSuccess(razorpayPaymentId: String?, paymentData: PaymentData?) {
-        Toast.makeText(this, "Payment Successful", Toast.LENGTH_LONG).show()
-        // Verify payment with your backend
+    override fun onPaymentSuccess(p0: String?, p1: PaymentData?) {
+
+        Toast.makeText(this,"Payment Successful",Toast.LENGTH_LONG).show()
+
     }
 
-    override fun onPaymentError(errorCode: Int, errorDescription: String?, paymentData: PaymentData?) {
-        Toast.makeText(this, "Payment Failed: $errorDescription", Toast.LENGTH_LONG).show()
+    override fun onPaymentError(p0: Int, p1: String?, p2: PaymentData?) {
+
+        Toast.makeText(this,"Payment Failed",Toast.LENGTH_LONG).show()
+
     }
+
 }
