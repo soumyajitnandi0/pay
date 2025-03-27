@@ -3,6 +3,7 @@ package com.example.pay
 import android.app.Activity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -41,37 +42,38 @@ class MainActivity : AppCompatActivity() , PaymentResultWithDataListener {
     }
 
     private fun initPayment() {
-
         val activity: Activity = this
         val co = Checkout()
+        val amountInput = findViewById<EditText>(R.id.amountEditText).text.toString()
+
+        if (amountInput.isEmpty()) {
+            Toast.makeText(this, "Please enter an amount", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         try {
-            val options = JSONObject()
-            options.put("name","SOUMYAJIT NANDI")
-            options.put("description","Reference No. #123456")
-            //You can omit the image option to fetch the image from the Dashboard
-            options.put("image","http://example.com/image/rzp.jpg")
-            options.put("theme.color", "#FF1515");
-            options.put("currency","INR");
-//            options.put("order_id", "order_DBJOWzybf0sJbb");
-            options.put("amount","50000")//pass amount in currency subunits
+            // Convert to subunits (INR → paise)
+            val amount = (amountInput.toDouble() * 100).toInt().toString()
 
-            val retryObj = JSONObject();
-            retryObj.put("enabled", false);
-//            retryObj.put("max_count", 4);
-            options.put("retry", retryObj);
+            val options = JSONObject().apply {
+                put("name", "SOUMYAJIT NANDI")
+                put("description", "Reference No. #123456")
+                put("image", "http://example.com/image/rzp.jpg")
+                put("theme.color", "#FF1515")
+                put("currency", "INR")
+                put("amount", amount) // Use dynamic amount
 
-            val prefill = JSONObject()
-            prefill.put("email","soumyajitnandi7384@gmail.com")
-            prefill.put("contact","9876543210")
+                // ... rest of your options ...
+            }
 
-            options.put("prefill",prefill)
-            co.open(activity,options)
-        }catch (e: Exception){
-            Toast.makeText(activity,"Error in payment: "+ e.message,Toast.LENGTH_LONG).show()
-            e.printStackTrace()
+            co.open(activity, options)
+        } catch (e: NumberFormatException) {
+            Toast.makeText(activity, "Invalid amount format", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(activity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
+
 
     override fun onPaymentSuccess(p0: String?, p1: PaymentData?) {
 
